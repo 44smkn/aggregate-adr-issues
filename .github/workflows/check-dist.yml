@@ -55,11 +55,17 @@ jobs:
   npm-all:
     runs-on: ubuntu-latest
     steps:
+      - uses: cybozu/octoken-action@v1
+        id: octoken
+        with:
+          github_app_id: ${{ secrets.GHA_GENERAL_APP_ID }}
+          github_app_private_key: ${{ secrets.GHA_GENERAL_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v3
         with:
           # update the pull request branch
           ref: ${{ github.head_ref }}
-          token:  ${{ secrets.GHA_TOKEN }}
+          token:  ${{ steps.octoken.outputs.token }}
 
       - name: Set Node.js 16.x
         uses: actions/setup-node@v3
