@@ -1,0 +1,12 @@
+{
+  extends: ['config:base'],
+  reviewers: ['44smkn'],
+  labels: ["renovate:{{depName}}"],
+  platformAutomerge: true,
+  packageRules: [
+    {
+      matchUpdateTypes: ['minor', 'patch', 'pin'],
+      automerge: true
+    }
+  ]
+}

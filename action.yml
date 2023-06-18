@@ -1,11 +1,13 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: "Aggregate GitHub issues for ADR"
+description: "Search ADR issues by given labels and list them with status on one issue named as given title"
+author: "44smkn"
 inputs:
-  milliseconds: # change this
+  issue-title:
+    description: "Title of github issue that aggregates ADR issues"
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  label-filter:
+    description: "Narrow down the target of aggregation by AND conditions using the specified label"
+    required: true
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"
