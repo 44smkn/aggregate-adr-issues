@@ -72,5 +72,5 @@ jobs:
         with:
           node-version: 16.x
       
-      - run: npm all
+      - run: npm run all
       - uses: int128/update-generated-files-action@v2
