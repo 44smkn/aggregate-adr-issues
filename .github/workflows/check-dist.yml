@@ -51,3 +51,20 @@ jobs:
         with:
           name: dist
           path: dist/
+          
+  npm-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # update the pull request branch
+          ref: ${{ github.head_ref }}
+          token:  ${{ secrets.GHA_TOKEN }}
+
+      - name: Set Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      
+      - run: npm all
+      - uses: int128/update-generated-files-action@v2
