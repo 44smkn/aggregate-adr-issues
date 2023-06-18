@@ -71,6 +71,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          
+      - name: Install dependencies
+        run: npm ci
       
       - run: npm run all
       - uses: int128/update-generated-files-action@v2
