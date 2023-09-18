@@ -2,10 +2,10 @@ name: "Aggregate GitHub issues for ADR"
 description: "Search ADR issues by given labels and list them with status on one issue named as given title"
 author: "44smkn"
 inputs:
-  issue-title:
+  summary-issue-title:
     description: "Title of github issue that aggregates ADR issues"
     required: true
-  label-filter:
+  adr-issue-labels:
     description: "Narrow down the target of aggregation by AND conditions using the specified label"
     required: true
 runs:

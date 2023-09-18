@@ -1,16 +1,27 @@
-import * as core from '@actions/core'
-import {wait} from './wait'
+import core from '@actions/core'
+import { GithubClient } from './github-client'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    // Assign given input parameter to variables
+    const githubAuthToken = core.getInput('token')
+    const labels = core.getMultilineInput('issue-lebals')
+    const statusRegex = new RegExp(core.getInput('status-regex'))
+    const organization = core.getInput('organization')
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const ghClient = new GithubClient(githubAuthToken)
 
-    core.setOutput('time', new Date().toTimeString())
+    if (organization.length !== 0) {
+      // Get org issues
+      return
+    }
+
+    const owner = process.env.GITHUB_REPOSITORY_OWNER || ''
+    const repo = process.env.GITHUB_REPOSITORY?.split('/').at(1) || ''
+
+    await ghClient.getAdrIssues(owner, repo, labels, statusRegex)
+
+    // const adrDashboardIssue = await ensureAdrDashboardIssue
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
