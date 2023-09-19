@@ -214,7 +214,7 @@ function run() {
             const octokit = (0, github_client_1.initOctokit)(githubAuthToken);
             const adrIssues = yield (0, adr_issues_1.getAdrIssues)(octokit, owner, repos, labels, statusRegex);
             const [dashabordOwner, dashabordRepo] = (_c = (_b = process_1.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')) !== null && _c !== void 0 ? _c : [owner];
-            (0, adr_issues_1.outputADRsToDashboardIssue)(octokit, adrIssues, dashabordOwner, dashabordRepo, dashboardIssueNumber);
+            yield (0, adr_issues_1.outputADRsToDashboardIssue)(octokit, adrIssues, dashabordOwner, dashabordRepo, dashboardIssueNumber);
             // const adrDashboardIssue = await ensureAdrDashboardIssue
         }
         catch (error) {
