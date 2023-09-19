@@ -1,4 +1,5 @@
-import { OctokitWithPagination, UpdateIssueResponse, listIssueCommentsResponse, listIssueForRepoResponse } from "./github-client"
+import { OctokitWithPagination, listIssueCommentsResponse, listIssueForRepoResponse } from "./github-client"
+import { markdownTable } from "./markdown-table"
 
 export type ADRIssues = {
   readonly adrFromIssues: ADR[]
@@ -9,6 +10,8 @@ export type ADR = {
   readonly title: string
   readonly htmlUrl: string
   readonly status: string
+  readonly author: string
+  readonly updateAt: string
 }
 
 export type ADRFromComment = {
@@ -30,12 +33,14 @@ export async function getAdrIssues(octokit: OctokitWithPagination, owner: string
   let adrFromIssues: ADR[] = []
   let adrFromComments: ADRFromComment[] = []
   await Promise.all(data.map(async (issue) => {
-    const status = statusRegex.exec(issue.body || '')?.at(1)
+    const status = statusRegex.exec(issue.body ?? '')?.at(1)
     if (status !== undefined) {
       adrFromIssues.push({
         title: issue.title,
         htmlUrl: issue.html_url,
-        status
+        status,
+        author: issue.user?.login ?? '',
+        updateAt: extractDateFromISO8601(issue.updated_at)
       })
       return
     }
@@ -66,8 +71,10 @@ async function getAdrComments(octokit: OctokitWithPagination, owner: string, rep
   return data.map(comment => ({
     title: extractTitleFromComment(comment.body),
     htmlUrl: comment.html_url,
-    status: statusRegex.exec(comment.body || '')?.at(1)?.toLowerCase() || 'unknown'
-  })).filter(adr => adr.status !== 'unknown')
+    status: statusRegex.exec(comment.body ?? '')?.at(1)?.toLowerCase() ?? 'unknown',
+    author: comment.user?.login ?? '',
+    updateAt: extractDateFromISO8601(comment.updated_at)
+  }))
 }
 
 function extractTitleFromComment(commentBody: string | undefined): string {
@@ -80,7 +87,7 @@ function extractTitleFromComment(commentBody: string | undefined): string {
   }
 
   const sentencesAfterTitle = new RegExp(/title[\s)\\n\\r]*(.+)/gim).exec(commentBody)?.at(1)
-  return sentencesAfterTitle?.split(/\r?\n/)[0] || 'unknown'
+  return sentencesAfterTitle?.split(/\r?\n/)[0] ?? 'unknown'
 }
 
 export async function outputADRsToDashboardIssue(octokit: OctokitWithPagination, adrIssues: ADRIssues, owner: string, repo: string, issueNumber: number) {
@@ -93,17 +100,33 @@ export async function outputADRsToDashboardIssue(octokit: OctokitWithPagination,
 }
 
 function formatADRIssuesToMarkdown(adrIssues: ADRIssues): string {
-  let formattedBody = ""
 
+  const templateTable = [['title', 'status', 'author', 'updated at']]
+
+  let adrPerIssueTable = [...templateTable]
   for (const adrFromIssue of adrIssues.adrFromIssues) {
-    formattedBody += `- [${adrFromIssue.title}](${adrFromIssue.htmlUrl}) (**${adrFromIssue.status}**)\n`
-  }
-  for (const adrFromComment of adrIssues.adrFromComments) {
-    formattedBody += `- [${adrFromComment.parentTitle}](${adrFromComment.parentHtmlUrl})\n`
-    for (const comment of adrFromComment.adrs) {
-      formattedBody += `\t- [${comment.title}](${comment.htmlUrl}) (**${comment.status}**)\n`
-    }
+    adrPerIssueTable.push([`[${adrFromIssue.title}](${adrFromIssue.htmlUrl})`, adrFromIssue.status, adrFromIssue.author, adrFromIssue.updateAt])
   }
 
-  return formattedBody
+  let adrPerIssueCommentText = ''
+  for (const adrFromComment of adrIssues.adrFromComments) {
+    adrPerIssueCommentText += `### [${adrFromComment.parentTitle}](${adrFromComment.parentHtmlUrl})\n`
+    let adrPerCommentTable = [...templateTable]
+    for (const comment of adrFromComment.adrs) {
+      adrPerCommentTable.push([`[${comment.title}](${comment.htmlUrl})`, comment.status, comment.author, comment.updateAt])
+    }
+    adrPerIssueCommentText += markdownTable(adrPerCommentTable)
+  }
+
+  return `This issue was updated by aggregate-adr-issues action
+## ADR per issue
+${markdownTable(adrPerIssueTable)}
+
+## ADR per issue comment
+${adrPerIssueCommentText}
+`
+}
+
+function extractDateFromISO8601(iso8601: string): string {
+  return iso8601.replace(/T.+$/, '')
 }
