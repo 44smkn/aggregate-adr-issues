@@ -10,7 +10,7 @@ async function run(): Promise<void> {
     const labels = core.getMultilineInput('issue-labels')
     const statusRegex =
       new RegExp(core.getInput('status-regex')) ??
-      /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/
+      /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im
     const owner = core.getInput('owner')
     const repos = core.getMultilineInput('repositories')
     const dashboardIssueNumber = parseInt(
