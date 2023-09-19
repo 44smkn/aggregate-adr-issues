@@ -1,6 +1,6 @@
 import core from '@actions/core'
 import { initOctokit } from './github-client'
-import { getAdrIssues } from './adr-issues'
+import { getAdrIssues, outputADRsToDashboardIssue } from './adr-issues'
 
 async function run(): Promise<void> {
   try {
@@ -8,10 +8,16 @@ async function run(): Promise<void> {
     const githubAuthToken = core.getInput('token')
     const labels = core.getMultilineInput('issue-lebals')
     const statusRegex = new RegExp(core.getInput('status-regex')) || /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/
-    const organization = core.getInput('organization') || process.env.GITHUB_REPOSITORY_OWNER
+    const owner = core.getInput('owner')
+    const repo = core.getInput('repositories')
+    const dashboardIssueNumber = parseInt(core.getInput('dashabord-issue-number'))
+    if (isNaN(dashboardIssueNumber)) {
+      core.setFailed('failed to cast dashabord-issue-number to number')
+    }
 
     const octokit = initOctokit(githubAuthToken)
-    await getAdrIssues(octokit, '44smkn', 'aggregate-adr-issues', labels, statusRegex)
+    const adrIssues = await getAdrIssues(octokit, owner, repo, labels, statusRegex)
+    outputADRsToDashboardIssue(octokit, adrIssues, owner, repo, dashboardIssueNumber)
 
     // const adrDashboardIssue = await ensureAdrDashboardIssue
   } catch (error) {
