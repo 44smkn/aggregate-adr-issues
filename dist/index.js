@@ -74,8 +74,8 @@ function getAdrIssuesForRepo(octokit, owner, repo, labels, statusRegex) {
         yield Promise.all(data.map((issue) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b, _c, _d;
             const status = (_b = statusRegex.exec((_a = issue.body) !== null && _a !== void 0 ? _a : '')) === null || _b === void 0 ? void 0 : _b.at(1);
-            core.info(`${issue.title}: ${status}`);
-            core.info(`issueBody: ${issue.body}`);
+            core.debug(`${issue.title}: ${status}`);
+            core.debug(`issueBody: ${issue.body}`);
             if (status !== undefined) {
                 adrFromIssues.push({
                     title: issue.title,
@@ -254,7 +254,9 @@ function run() {
             const githubAuthToken = core.getInput('token');
             const labels = core.getMultilineInput('issue-labels');
             const statusRegexStr = core.getInput('status-regex');
-            const statusRegex = statusRegexStr ? new RegExp(statusRegexStr) : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im;
+            const statusRegex = statusRegexStr
+                ? new RegExp(statusRegexStr)
+                : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im;
             const owner = core.getInput('owner');
             const repos = core.getMultilineInput('repositories');
             const dashboardIssueNumber = parseInt(core.getInput('dashabord-issue-number'));

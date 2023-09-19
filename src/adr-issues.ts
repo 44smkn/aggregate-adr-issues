@@ -77,8 +77,8 @@ export async function getAdrIssuesForRepo(
   await Promise.all(
     data.map(async issue => {
       const status = statusRegex.exec(issue.body ?? '')?.at(1)
-      core.info(`${issue.title}: ${status}`)
-      core.info(`issueBody: ${issue.body}`)
+      core.debug(`${issue.title}: ${status}`)
+      core.debug(`issueBody: ${issue.body}`)
       if (status !== undefined) {
         adrFromIssues.push({
           title: issue.title,
