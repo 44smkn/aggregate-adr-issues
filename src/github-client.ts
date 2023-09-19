@@ -2,9 +2,12 @@ import { Octokit } from '@octokit/rest'
 import { paginateRest } from '@octokit/plugin-paginate-rest'
 import type { Endpoints } from '@octokit/types'
 
-export type listIssueForRepoResponse = Endpoints['GET /repos/{owner}/{repo}/issues']['response']
-export type listIssueCommentsResponse = Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/comments']['response']
-export type UpdateIssueResponse = Endpoints['PATCH /repos/{owner}/{repo}/issues/{issue_number}']['response']
+export type listIssueForRepoResponse =
+  Endpoints['GET /repos/{owner}/{repo}/issues']['response']
+export type listIssueCommentsResponse =
+  Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}/comments']['response']
+export type UpdateIssueResponse =
+  Endpoints['PATCH /repos/{owner}/{repo}/issues/{issue_number}']['response']
 
 export type OctokitWithPagination = InstanceType<typeof OctkitWithPagination>
 

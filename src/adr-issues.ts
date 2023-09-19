@@ -1,5 +1,9 @@
-import { OctokitWithPagination, listIssueCommentsResponse, listIssueForRepoResponse } from "./github-client"
-import { markdownTable } from "./markdown-table"
+import {
+  OctokitWithPagination,
+  listIssueCommentsResponse,
+  listIssueForRepoResponse
+} from './github-client'
+import { markdownTable } from './markdown-table'
 
 export type ADRIssues = {
   readonly adrFromIssues: ADR[]
@@ -20,12 +24,24 @@ export type ADRFromComment = {
   readonly adrs: ADR[]
 }
 
-export async function getAdrIssues(octokit: OctokitWithPagination, owner: string, repos: string[], labels: string[], statusRegex: RegExp): Promise<ADRIssues> {
+export async function getAdrIssues(
+  octokit: OctokitWithPagination,
+  owner: string,
+  repos: string[],
+  labels: string[],
+  statusRegex: RegExp
+): Promise<ADRIssues> {
   let adrFromIssues: ADR[] = []
   let adrFromComments: ADRFromComment[] = []
 
   for (const repo of repos) {
-    const adrIssuesForRepo = await getAdrIssuesForRepo(octokit, owner, repo, labels, statusRegex)
+    const adrIssuesForRepo = await getAdrIssuesForRepo(
+      octokit,
+      owner,
+      repo,
+      labels,
+      statusRegex
+    )
     adrFromIssues = [...adrFromIssues, ...adrIssuesForRepo.adrFromIssues]
     adrFromComments = [...adrFromComments, ...adrIssuesForRepo.adrFromComments]
   }
@@ -36,38 +52,52 @@ export async function getAdrIssues(octokit: OctokitWithPagination, owner: string
   }
 }
 
-export async function getAdrIssuesForRepo(octokit: OctokitWithPagination, owner: string, repo: string, labels: string[], statusRegex: RegExp): Promise<ADRIssues> {
+export async function getAdrIssuesForRepo(
+  octokit: OctokitWithPagination,
+  owner: string,
+  repo: string,
+  labels: string[],
+  statusRegex: RegExp
+): Promise<ADRIssues> {
   const data: listIssueForRepoResponse['data'] = await octokit.paginate(
     // https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-organization-issues-assigned-to-the-authenticated-user
     octokit.rest.issues.listForRepo.endpoint.merge({
       owner,
       repo,
-      labels: labels.join(','),
+      labels: labels.join(',')
     })
   )
 
-  let adrFromIssues: ADR[] = []
-  let adrFromComments: ADRFromComment[] = []
-  await Promise.all(data.map(async (issue) => {
-    const status = statusRegex.exec(issue.body ?? '')?.at(1)
-    if (status !== undefined) {
-      adrFromIssues.push({
-        title: issue.title,
-        htmlUrl: issue.html_url,
-        status,
-        author: issue.user?.login ?? '',
-        updateAt: extractDateFromISO8601(issue.updated_at)
+  const adrFromIssues: ADR[] = []
+  const adrFromComments: ADRFromComment[] = []
+  await Promise.all(
+    data.map(async issue => {
+      const status = statusRegex.exec(issue.body ?? '')?.at(1)
+      if (status !== undefined) {
+        adrFromIssues.push({
+          title: issue.title,
+          htmlUrl: issue.html_url,
+          status,
+          author: issue.user?.login ?? '',
+          updateAt: extractDateFromISO8601(issue.updated_at)
+        })
+        return
+      }
+      const adrs = await getAdrComments(
+        octokit,
+        owner,
+        repo,
+        issue.number,
+        statusRegex
+      )
+
+      adrFromComments.push({
+        parentTitle: issue.title,
+        parentHtmlUrl: issue.html_url,
+        adrs
       })
-      return
-    }
-    const adrs = await getAdrComments(octokit, owner, repo, issue.number, statusRegex)
-    console.log(adrs)
-    adrFromComments.push({
-      parentTitle: issue.title,
-      parentHtmlUrl: issue.html_url,
-      adrs
     })
-  }))
+  )
 
   return {
     adrFromIssues,
@@ -75,7 +105,13 @@ export async function getAdrIssuesForRepo(octokit: OctokitWithPagination, owner:
   }
 }
 
-async function getAdrComments(octokit: OctokitWithPagination, owner: string, repo: string, issueNumber: number, statusRegex: RegExp): Promise<ADR[]> {
+async function getAdrComments(
+  octokit: OctokitWithPagination,
+  owner: string,
+  repo: string,
+  issueNumber: number,
+  statusRegex: RegExp
+): Promise<ADR[]> {
   const data: listIssueCommentsResponse['data'] = await octokit.paginate(
     octokit.rest.issues.listComments.endpoint.merge({
       owner,
@@ -87,14 +123,18 @@ async function getAdrComments(octokit: OctokitWithPagination, owner: string, rep
   return data.map(comment => ({
     title: extractTitleFromComment(comment.body),
     htmlUrl: comment.html_url,
-    status: statusRegex.exec(comment.body ?? '')?.at(1)?.toLowerCase() ?? 'unknown',
+    status:
+      statusRegex
+        .exec(comment.body ?? '')
+        ?.at(1)
+        ?.toLowerCase() ?? 'unknown',
     author: comment.user?.login ?? '',
     updateAt: extractDateFromISO8601(comment.updated_at)
   }))
 }
 
 function extractTitleFromComment(commentBody: string | undefined): string {
-  if (commentBody == undefined) {
+  if (commentBody === undefined) {
     return 'unknown'
   }
   const firstLine = commentBody.split(/\r?\n/)[0].replace(/^#+\s*/, '')
@@ -102,11 +142,19 @@ function extractTitleFromComment(commentBody: string | undefined): string {
     return firstLine
   }
 
-  const sentencesAfterTitle = new RegExp(/title[\s)\\n\\r]*(.+)/gim).exec(commentBody)?.at(1)
+  const sentencesAfterTitle = new RegExp(/title[\s)\\n\\r]*(.+)/gim)
+    .exec(commentBody)
+    ?.at(1)
   return sentencesAfterTitle?.split(/\r?\n/)[0] ?? 'unknown'
 }
 
-export async function outputADRsToDashboardIssue(octokit: OctokitWithPagination, adrIssues: ADRIssues, owner: string, repo: string, issueNumber: number) {
+export async function outputADRsToDashboardIssue(
+  octokit: OctokitWithPagination,
+  adrIssues: ADRIssues,
+  owner: string,
+  repo: string,
+  issueNumber: number
+): Promise<void> {
   await octokit.rest.issues.update({
     owner,
     repo,
@@ -116,20 +164,29 @@ export async function outputADRsToDashboardIssue(octokit: OctokitWithPagination,
 }
 
 function formatADRIssuesToMarkdown(adrIssues: ADRIssues): string {
-
   const templateTable = [['title', 'status', 'author', 'updated at']]
 
-  let adrPerIssueTable = [...templateTable]
+  const adrPerIssueTable = [...templateTable]
   for (const adrFromIssue of adrIssues.adrFromIssues) {
-    adrPerIssueTable.push([`[${adrFromIssue.title}](${adrFromIssue.htmlUrl})`, adrFromIssue.status, adrFromIssue.author, adrFromIssue.updateAt])
+    adrPerIssueTable.push([
+      `[${adrFromIssue.title}](${adrFromIssue.htmlUrl})`,
+      adrFromIssue.status,
+      adrFromIssue.author,
+      adrFromIssue.updateAt
+    ])
   }
 
   let adrPerIssueCommentText = ''
   for (const adrFromComment of adrIssues.adrFromComments) {
     adrPerIssueCommentText += `### [${adrFromComment.parentTitle}](${adrFromComment.parentHtmlUrl})\n`
-    let adrPerCommentTable = [...templateTable]
+    const adrPerCommentTable = [...templateTable]
     for (const comment of adrFromComment.adrs) {
-      adrPerCommentTable.push([`[${comment.title}](${comment.htmlUrl})`, comment.status, comment.author, comment.updateAt])
+      adrPerCommentTable.push([
+        `[${comment.title}](${comment.htmlUrl})`,
+        comment.status,
+        comment.author,
+        comment.updateAt
+      ])
     }
     adrPerIssueCommentText += markdownTable(adrPerCommentTable)
   }
