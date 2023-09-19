@@ -224,7 +224,7 @@ function run() {
             // Assign given input parameter to variables
             const githubAuthToken = core.getInput('token');
             const labels = core.getMultilineInput('issue-labels');
-            const statusRegex = (_a = new RegExp(core.getInput('status-regex'))) !== null && _a !== void 0 ? _a : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/;
+            const statusRegex = (_a = new RegExp(core.getInput('status-regex'))) !== null && _a !== void 0 ? _a : new RegExp(/status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im);
             const owner = core.getInput('owner');
             const repos = core.getMultilineInput('repositories');
             const dashboardIssueNumber = parseInt(core.getInput('dashabord-issue-number'));
