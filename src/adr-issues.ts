@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import {
   OctokitWithPagination,
   listIssueCommentsResponse,
@@ -45,6 +46,9 @@ export async function getAdrIssues(
     adrFromIssues = [...adrFromIssues, ...adrIssuesForRepo.adrFromIssues]
     adrFromComments = [...adrFromComments, ...adrIssuesForRepo.adrFromComments]
   }
+
+  core.info(`adrFromIssues: ${adrFromIssues}`)
+  core.info(`adrFromComments: ${adrFromComments}`)
 
   return {
     adrFromIssues,

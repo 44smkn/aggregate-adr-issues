@@ -4,13 +4,14 @@ import { getAdrIssues, outputADRsToDashboardIssue } from './adr-issues'
 import { env } from 'process'
 
 async function run(): Promise<void> {
+  core.info('start')
   try {
     // Assign given input parameter to variables
     const githubAuthToken = core.getInput('token')
     const labels = core.getMultilineInput('issue-labels')
     const statusRegex =
       new RegExp(core.getInput('status-regex')) ??
-      new RegExp(/status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im)
+      /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im
     const owner = core.getInput('owner')
     const repos = core.getMultilineInput('repositories')
     const dashboardIssueNumber = parseInt(
@@ -44,6 +45,7 @@ async function run(): Promise<void> {
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
+  core.info('end')
 }
 
 run()

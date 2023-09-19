@@ -2,8 +2,7 @@ import { getAdrIssues, outputADRsToDashboardIssue } from '../src/adr-issues'
 import { OctokitWithPagination, initOctokit } from '../src/github-client'
 
 describe('getAdrIssues', () => {
-
-  let mockOctokit: jest.Mocked<OctokitWithPagination>;
+  let mockOctokit: jest.Mocked<OctokitWithPagination>
 
   beforeEach(() => {
     // モックの初期化
@@ -23,38 +22,42 @@ describe('getAdrIssues', () => {
           }
         }
       }
-    } as any; // 強制的に型変換
-  });
+    } as any // 強制的に型変換
+  })
 
   it('should return the correct ADR issues and comments', async () => {
-
     mockOctokit.paginate
-      .mockResolvedValueOnce([{
-        title: 'ADR per issue',
-        html_url: 'https://github.com/44smkn/aggregate-adr-issues/issues/8',
-        body: `### status
+      .mockResolvedValueOnce([
+        {
+          title: 'ADR per issue',
+          html_url: 'https://github.com/44smkn/aggregate-adr-issues/issues/8',
+          body: `### status
 proposed`,
-        user: {
-          login: '44smkn'
+          user: {
+            login: '44smkn'
+          },
+          updated_at: '2023-09-19T06:12:57Z'
         },
-        updated_at: '2023-09-19T06:12:57Z'
-      }, {
-        title: 'ADR per comment',
-        html_url: 'https://github.com/44smkn/aggregate-adr-issues/issues/9',
-        body: 'empty',
-      }])
-      .mockResolvedValueOnce([{
-        html_url: 'https://github.com/44smkn/aggregate-adr-issues/issues/8',
-        body: `### ## タイトル(Title)
+        {
+          title: 'ADR per comment',
+          html_url: 'https://github.com/44smkn/aggregate-adr-issues/issues/9',
+          body: 'empty'
+        }
+      ])
+      .mockResolvedValueOnce([
+        {
+          html_url: 'https://github.com/44smkn/aggregate-adr-issues/issues/8',
+          body: `### ## タイトル(Title)
 foobar
 ## ステータス(Status)
 Done
 `,
-        user: {
-          login: '44smkn'
-        },
-        updated_at: '2023-09-19T06:12:57Z'
-      }])
+          user: {
+            login: '44smkn'
+          },
+          updated_at: '2023-09-19T06:12:57Z'
+        }
+      ])
 
     const adrIssues = await getAdrIssues(
       mockOctokit,
@@ -80,11 +83,13 @@ Done
       adrFromComments: [
         {
           parentTitle: 'ADR per comment',
-          parentHtmlUrl: 'https://github.com/44smkn/aggregate-adr-issues/issues/9',
+          parentHtmlUrl:
+            'https://github.com/44smkn/aggregate-adr-issues/issues/9',
           adrs: [
             {
               title: 'foobar',
-              htmlUrl: 'https://github.com/44smkn/aggregate-adr-issues/issues/8',
+              htmlUrl:
+                'https://github.com/44smkn/aggregate-adr-issues/issues/8',
               status: 'done',
               author: '44smkn',
               updateAt: '2023-09-19'
