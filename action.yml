@@ -2,12 +2,22 @@ name: "Aggregate GitHub issues for ADR"
 description: "Search ADR issues by given labels and list them with status on one issue named as given title"
 author: "44smkn"
 inputs:
-  summary-issue-title:
-    description: "Title of github issue that aggregates ADR issues"
-    required: true
-  adr-issue-labels:
+  issue-labels:
     description: "Narrow down the target of aggregation by AND conditions using the specified label"
     required: true
+  owner:
+    description: "Repository owner"
+    required: true
+  repositories:
+    description: "Repositories where adr issues exist in"
+    required: true
+  dashabord-issue-number:
+    description: "ADR dashboard issue number"
+    required: true
+  status-regex:
+    description: "regex to find ADR status"
+  token:
+    description: GitHub token
 runs:
   using: "node16"
   main: "dist/index.js"

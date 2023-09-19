@@ -20,7 +20,23 @@ export type ADRFromComment = {
   readonly adrs: ADR[]
 }
 
-export async function getAdrIssues(octokit: OctokitWithPagination, owner: string, repo: string, labels: string[], statusRegex: RegExp): Promise<ADRIssues> {
+export async function getAdrIssues(octokit: OctokitWithPagination, owner: string, repos: string[], labels: string[], statusRegex: RegExp): Promise<ADRIssues> {
+  let adrFromIssues: ADR[] = []
+  let adrFromComments: ADRFromComment[] = []
+
+  for (const repo of repos) {
+    const adrIssuesForRepo = await getAdrIssuesForRepo(octokit, owner, repo, labels, statusRegex)
+    adrFromIssues = [...adrFromIssues, ...adrIssuesForRepo.adrFromIssues]
+    adrFromComments = [...adrFromComments, ...adrIssuesForRepo.adrFromComments]
+  }
+
+  return {
+    adrFromIssues,
+    adrFromComments
+  }
+}
+
+export async function getAdrIssuesForRepo(octokit: OctokitWithPagination, owner: string, repo: string, labels: string[], statusRegex: RegExp): Promise<ADRIssues> {
   const data: listIssueForRepoResponse['data'] = await octokit.paginate(
     // https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-organization-issues-assigned-to-the-authenticated-user
     octokit.rest.issues.listForRepo.endpoint.merge({
