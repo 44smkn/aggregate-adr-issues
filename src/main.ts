@@ -32,7 +32,7 @@ async function run(): Promise<void> {
     const [dashabordOwner, dashabordRepo] = env.GITHUB_REPOSITORY?.split(
       '/'
     ) ?? [owner]
-    outputADRsToDashboardIssue(
+    await outputADRsToDashboardIssue(
       octokit,
       adrIssues,
       dashabordOwner,
