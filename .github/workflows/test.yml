@@ -17,6 +17,8 @@ jobs:
           npm run all
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - uses: cybozu/octoken-action@v1
         id: octoken
