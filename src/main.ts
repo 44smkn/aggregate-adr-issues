@@ -9,9 +9,10 @@ async function run(): Promise<void> {
     // Assign given input parameter to variables
     const githubAuthToken = core.getInput('token')
     const labels = core.getMultilineInput('issue-labels')
-    const statusRegex =
-      new RegExp(core.getInput('status-regex')) ??
-      /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im
+    const statusRegexStr = core.getInput('status-regex')
+    const statusRegex = statusRegexStr
+      ? new RegExp(statusRegexStr)
+      : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im
     const owner = core.getInput('owner')
     const repos = core.getMultilineInput('repositories')
     const dashboardIssueNumber = parseInt(

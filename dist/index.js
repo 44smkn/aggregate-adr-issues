@@ -246,14 +246,15 @@ const github_client_1 = __nccwpck_require__(4072);
 const adr_issues_1 = __nccwpck_require__(112);
 const process_1 = __nccwpck_require__(7282);
 function run() {
-    var _a, _b, _c;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         core.info('start');
         try {
             // Assign given input parameter to variables
             const githubAuthToken = core.getInput('token');
             const labels = core.getMultilineInput('issue-labels');
-            const statusRegex = (_a = new RegExp(core.getInput('status-regex'))) !== null && _a !== void 0 ? _a : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im;
+            const statusRegexStr = core.getInput('status-regex');
+            const statusRegex = statusRegexStr ? new RegExp(statusRegexStr) : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im;
             const owner = core.getInput('owner');
             const repos = core.getMultilineInput('repositories');
             const dashboardIssueNumber = parseInt(core.getInput('dashabord-issue-number'));
@@ -266,7 +267,7 @@ function run() {
             core.info(`status-regex: ${statusRegex}`);
             const octokit = (0, github_client_1.initOctokit)(githubAuthToken);
             const adrIssues = yield (0, adr_issues_1.getAdrIssues)(octokit, owner, repos, labels, statusRegex);
-            const [dashabordOwner, dashabordRepo] = (_c = (_b = process_1.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')) !== null && _c !== void 0 ? _c : [owner];
+            const [dashabordOwner, dashabordRepo] = (_b = (_a = process_1.env.GITHUB_REPOSITORY) === null || _a === void 0 ? void 0 : _a.split('/')) !== null && _b !== void 0 ? _b : [owner];
             yield (0, adr_issues_1.outputADRsToDashboardIssue)(octokit, adrIssues, dashabordOwner, dashabordRepo, dashboardIssueNumber);
             // const adrDashboardIssue = await ensureAdrDashboardIssue
         }
