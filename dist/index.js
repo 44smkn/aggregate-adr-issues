@@ -51,8 +51,8 @@ function getAdrIssues(octokit, owner, repos, labels, statusRegex) {
             adrFromIssues = [...adrFromIssues, ...adrIssuesForRepo.adrFromIssues];
             adrFromComments = [...adrFromComments, ...adrIssuesForRepo.adrFromComments];
         }
-        core.info(`adrFromIssues: ${adrFromIssues}`);
-        core.info(`adrFromComments: ${adrFromComments}`);
+        core.info(`adrFromIssues length: ${adrFromIssues.length}`);
+        core.info(`adrFromComments length: ${adrFromComments.length}`);
         return {
             adrFromIssues,
             adrFromComments
@@ -74,6 +74,8 @@ function getAdrIssuesForRepo(octokit, owner, repo, labels, statusRegex) {
         yield Promise.all(data.map((issue) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b, _c, _d;
             const status = (_b = statusRegex.exec((_a = issue.body) !== null && _a !== void 0 ? _a : '')) === null || _b === void 0 ? void 0 : _b.at(1);
+            core.info(`${issue.title}: ${status}`);
+            core.info(`issueBody: ${issue.body}`);
             if (status !== undefined) {
                 adrFromIssues.push({
                     title: issue.title,
@@ -258,6 +260,10 @@ function run() {
             if (isNaN(dashboardIssueNumber)) {
                 core.setFailed('failed to cast dashabord-issue-number to number');
             }
+            core.info(`owner: ${owner}`);
+            core.info(`repositories: ${repos}`);
+            core.info(`issue-labels: ${labels}`);
+            core.info(`status-regex: ${statusRegex}`);
             const octokit = (0, github_client_1.initOctokit)(githubAuthToken);
             const adrIssues = yield (0, adr_issues_1.getAdrIssues)(octokit, owner, repos, labels, statusRegex);
             const [dashabordOwner, dashabordRepo] = (_c = (_b = process_1.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')) !== null && _c !== void 0 ? _c : [owner];

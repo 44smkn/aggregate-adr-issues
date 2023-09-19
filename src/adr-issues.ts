@@ -47,8 +47,8 @@ export async function getAdrIssues(
     adrFromComments = [...adrFromComments, ...adrIssuesForRepo.adrFromComments]
   }
 
-  core.info(`adrFromIssues: ${adrFromIssues}`)
-  core.info(`adrFromComments: ${adrFromComments}`)
+  core.info(`adrFromIssues length: ${adrFromIssues.length}`)
+  core.info(`adrFromComments length: ${adrFromComments.length}`)
 
   return {
     adrFromIssues,
@@ -77,6 +77,8 @@ export async function getAdrIssuesForRepo(
   await Promise.all(
     data.map(async issue => {
       const status = statusRegex.exec(issue.body ?? '')?.at(1)
+      core.info(`${issue.title}: ${status}`)
+      core.info(`issueBody: ${issue.body}`)
       if (status !== undefined) {
         adrFromIssues.push({
           title: issue.title,

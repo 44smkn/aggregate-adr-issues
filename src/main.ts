@@ -21,6 +21,11 @@ async function run(): Promise<void> {
       core.setFailed('failed to cast dashabord-issue-number to number')
     }
 
+    core.info(`owner: ${owner}`)
+    core.info(`repositories: ${repos}`)
+    core.info(`issue-labels: ${labels}`)
+    core.info(`status-regex: ${statusRegex}`)
+
     const octokit = initOctokit(githubAuthToken)
     const adrIssues = await getAdrIssues(
       octokit,
