@@ -180,6 +180,29 @@ exports.initOctokit = initOctokit;
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -189,11 +212,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core_1 = __importDefault(__nccwpck_require__(2186));
+const core = __importStar(__nccwpck_require__(2186));
 const github_client_1 = __nccwpck_require__(4072);
 const adr_issues_1 = __nccwpck_require__(112);
 const process_1 = __nccwpck_require__(7282);
@@ -202,14 +222,14 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // Assign given input parameter to variables
-            const githubAuthToken = core_1.default.getInput('token');
-            const labels = core_1.default.getMultilineInput('issue-labels');
-            const statusRegex = (_a = new RegExp(core_1.default.getInput('status-regex'))) !== null && _a !== void 0 ? _a : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/;
-            const owner = core_1.default.getInput('owner');
-            const repos = core_1.default.getMultilineInput('repositories');
-            const dashboardIssueNumber = parseInt(core_1.default.getInput('dashabord-issue-number'));
+            const githubAuthToken = core.getInput('token');
+            const labels = core.getMultilineInput('issue-labels');
+            const statusRegex = (_a = new RegExp(core.getInput('status-regex'))) !== null && _a !== void 0 ? _a : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/;
+            const owner = core.getInput('owner');
+            const repos = core.getMultilineInput('repositories');
+            const dashboardIssueNumber = parseInt(core.getInput('dashabord-issue-number'));
             if (isNaN(dashboardIssueNumber)) {
-                core_1.default.setFailed('failed to cast dashabord-issue-number to number');
+                core.setFailed('failed to cast dashabord-issue-number to number');
             }
             const octokit = (0, github_client_1.initOctokit)(githubAuthToken);
             const adrIssues = yield (0, adr_issues_1.getAdrIssues)(octokit, owner, repos, labels, statusRegex);
@@ -219,7 +239,7 @@ function run() {
         }
         catch (error) {
             if (error instanceof Error)
-                core_1.default.setFailed(error.message);
+                core.setFailed(error.message);
         }
     });
 }

@@ -1,4 +1,4 @@
-import core from '@actions/core'
+import * as core from '@actions/core'
 import { initOctokit } from './github-client'
 import { getAdrIssues, outputADRsToDashboardIssue } from './adr-issues'
 import { env } from 'process'
