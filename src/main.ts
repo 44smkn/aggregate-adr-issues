@@ -1,25 +1,17 @@
 import core from '@actions/core'
-import { GithubClient } from './github-client'
+import { initOctokit } from './github-client'
+import { getAdrIssues } from './adr-issues'
 
 async function run(): Promise<void> {
   try {
     // Assign given input parameter to variables
     const githubAuthToken = core.getInput('token')
     const labels = core.getMultilineInput('issue-lebals')
-    const statusRegex = new RegExp(core.getInput('status-regex'))
-    const organization = core.getInput('organization')
+    const statusRegex = new RegExp(core.getInput('status-regex')) || /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/
+    const organization = core.getInput('organization') || process.env.GITHUB_REPOSITORY_OWNER
 
-    const ghClient = new GithubClient(githubAuthToken)
-
-    if (organization.length !== 0) {
-      // Get org issues
-      return
-    }
-
-    const owner = process.env.GITHUB_REPOSITORY_OWNER || ''
-    const repo = process.env.GITHUB_REPOSITORY?.split('/').at(1) || ''
-
-    await ghClient.getAdrIssues(owner, repo, labels, statusRegex)
+    const octokit = initOctokit(githubAuthToken)
+    await getAdrIssues(octokit, '44smkn', 'aggregate-adr-issues', labels, statusRegex)
 
     // const adrDashboardIssue = await ensureAdrDashboardIssue
   } catch (error) {
