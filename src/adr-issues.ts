@@ -1,10 +1,8 @@
 import * as core from '@actions/core'
-import {
-  OctokitWithPagination,
-  listIssueCommentsResponse,
-  listIssueForRepoResponse
-} from './github-client'
+import { GitHub } from '@actions/github/lib/utils'
 import { markdownTable } from './markdown-table'
+
+type Octokit = InstanceType<typeof GitHub>
 
 export type ADRIssues = {
   readonly adrFromIssues: ADR[]
@@ -26,7 +24,7 @@ export type ADRFromComment = {
 }
 
 export async function getAdrIssues(
-  octokit: OctokitWithPagination,
+  octokit: Octokit,
   owner: string,
   repos: string[],
   labels: string[],
@@ -57,20 +55,17 @@ export async function getAdrIssues(
 }
 
 export async function getAdrIssuesForRepo(
-  octokit: OctokitWithPagination,
+  octokit: Octokit,
   owner: string,
   repo: string,
   labels: string[],
   statusRegex: RegExp
 ): Promise<ADRIssues> {
-  const data: listIssueForRepoResponse['data'] = await octokit.paginate(
-    // https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-organization-issues-assigned-to-the-authenticated-user
-    octokit.rest.issues.listForRepo.endpoint.merge({
-      owner,
-      repo,
-      labels: labels.join(',')
-    })
-  )
+  const data = await octokit.paginate(octokit.rest.issues.listForRepo, {
+    owner,
+    repo,
+    labels: labels.join(',')
+  })
 
   const adrFromIssues: ADR[] = []
   const adrFromComments: ADRFromComment[] = []
@@ -112,19 +107,17 @@ export async function getAdrIssuesForRepo(
 }
 
 async function getAdrComments(
-  octokit: OctokitWithPagination,
+  octokit: Octokit,
   owner: string,
   repo: string,
   issueNumber: number,
   statusRegex: RegExp
 ): Promise<ADR[]> {
-  const data: listIssueCommentsResponse['data'] = await octokit.paginate(
-    octokit.rest.issues.listComments.endpoint.merge({
-      owner,
-      repo,
-      issue_number: issueNumber
-    })
-  )
+  const data = await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: issueNumber
+  })
 
   return data.map(comment => ({
     title: extractTitleFromComment(comment.body),
@@ -155,18 +148,19 @@ function extractTitleFromComment(commentBody: string | undefined): string {
 }
 
 export async function outputADRsToDashboardIssue(
-  octokit: OctokitWithPagination,
+  octokit: Octokit,
   adrIssues: ADRIssues,
   owner: string,
   repo: string,
   issueNumber: number
 ): Promise<void> {
-  await octokit.rest.issues.update({
+  const issue = await octokit.rest.issues.update({
     owner,
     repo,
     issue_number: issueNumber,
     body: formatADRIssuesToMarkdown(adrIssues)
   })
+  core.info(`Updated ${issue.url}`)
 }
 
 function formatADRIssuesToMarkdown(adrIssues: ADRIssues): string {

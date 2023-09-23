@@ -1,28 +1,19 @@
-import { getAdrIssues, outputADRsToDashboardIssue } from '../src/adr-issues'
-import { OctokitWithPagination, initOctokit } from '../src/github-client'
+import { getAdrIssues } from '../src/adr-issues'
+import { GitHub } from '@actions/github/lib/utils'
 
 describe('getAdrIssues', () => {
-  let mockOctokit: jest.Mocked<OctokitWithPagination>
+  let mockOctokit: jest.Mocked<InstanceType<typeof GitHub>>
 
   beforeEach(() => {
-    // モックの初期化
     mockOctokit = {
       paginate: jest.fn(),
       rest: {
         issues: {
-          listForRepo: {
-            endpoint: {
-              merge: jest.fn()
-            }
-          },
-          listComments: {
-            endpoint: {
-              merge: jest.fn()
-            }
-          }
+          listForRepo: jest.fn,
+          listComments: jest.fn
         }
       }
-    } as any // 強制的に型変換
+    } as any
   })
 
   it('should return the correct ADR issues and comments', async () => {

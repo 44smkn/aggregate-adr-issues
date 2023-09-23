@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { initOctokit } from './github-client'
+import * as github from '@actions/github'
 import { getAdrIssues, outputADRsToDashboardIssue } from './adr-issues'
 import { env } from 'process'
 
@@ -27,7 +27,7 @@ async function run(): Promise<void> {
     core.info(`issue-labels: ${labels}`)
     core.info(`status-regex: ${statusRegex}`)
 
-    const octokit = initOctokit(githubAuthToken)
+    const octokit = github.getOctokit(githubAuthToken)
     const adrIssues = await getAdrIssues(
       octokit,
       owner,
