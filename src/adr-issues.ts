@@ -1,6 +1,8 @@
 import * as core from '@actions/core'
 import { GitHub } from '@actions/github/lib/utils'
 import { markdownTable } from './markdown-table'
+import { SourceADRInputs } from './source-adr-inputs'
+import { ADRDashboardInputs } from './adr-dashboard-inputs'
 
 type Octokit = InstanceType<typeof GitHub>
 
@@ -24,22 +26,18 @@ export type ADRFromComment = {
 }
 
 export async function getAdrIssues(
-  octokit: Octokit,
-  owner: string,
-  repos: string[],
-  labels: string[],
-  statusRegex: RegExp
+  inputs: SourceADRInputs
 ): Promise<ADRIssues> {
   let adrFromIssues: ADR[] = []
   let adrFromComments: ADRFromComment[] = []
 
-  for (const repo of repos) {
+  for (const repo of inputs.repositories) {
     const adrIssuesForRepo = await getAdrIssuesForRepo(
-      octokit,
-      owner,
-      repo,
-      labels,
-      statusRegex
+      inputs.octokit,
+      repo.owner,
+      repo.name,
+      inputs.labels,
+      inputs.statusRegex
     )
     adrFromIssues = [...adrFromIssues, ...adrIssuesForRepo.adrFromIssues]
     adrFromComments = [...adrFromComments, ...adrIssuesForRepo.adrFromComments]
@@ -54,7 +52,7 @@ export async function getAdrIssues(
   }
 }
 
-export async function getAdrIssuesForRepo(
+async function getAdrIssuesForRepo(
   octokit: Octokit,
   owner: string,
   repo: string,
@@ -148,17 +146,17 @@ function extractTitleFromComment(commentBody: string | undefined): string {
 }
 
 export async function outputADRsToDashboardIssue(
-  octokit: Octokit,
-  adrIssues: ADRIssues,
-  owner: string,
-  repo: string,
-  issueNumber: number
+  inputs: ADRDashboardInputs,
+  adrIssues: ADRIssues
 ): Promise<void> {
-  const issue = await octokit.rest.issues.update({
-    owner,
-    repo,
-    issue_number: issueNumber,
-    body: formatADRIssuesToMarkdown(adrIssues)
+  const mdtext = formatADRIssuesToMarkdown(adrIssues)
+  core.debug(`mdtext: ${mdtext}`)
+
+  const issue = await inputs.octokit.rest.issues.update({
+    owner: inputs.repositoryOwner,
+    repo: inputs.repositoryName,
+    issue_number: inputs.issueNumber,
+    body: mdtext
   })
   core.info(`Updated ${issue.url}`)
 }

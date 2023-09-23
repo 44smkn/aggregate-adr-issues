@@ -39,15 +39,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.outputADRsToDashboardIssue = exports.getAdrIssuesForRepo = exports.getAdrIssues = void 0;
+exports.outputADRsToDashboardIssue = exports.getAdrIssues = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const markdown_table_1 = __nccwpck_require__(6335);
-function getAdrIssues(octokit, owner, repos, labels, statusRegex) {
+function getAdrIssues(inputs) {
     return __awaiter(this, void 0, void 0, function* () {
         let adrFromIssues = [];
         let adrFromComments = [];
-        for (const repo of repos) {
-            const adrIssuesForRepo = yield getAdrIssuesForRepo(octokit, owner, repo, labels, statusRegex);
+        for (const repo of inputs.repositories) {
+            const adrIssuesForRepo = yield getAdrIssuesForRepo(inputs.octokit, repo.owner, repo.name, inputs.labels, inputs.statusRegex);
             adrFromIssues = [...adrFromIssues, ...adrIssuesForRepo.adrFromIssues];
             adrFromComments = [...adrFromComments, ...adrIssuesForRepo.adrFromComments];
         }
@@ -65,7 +65,7 @@ function getAdrIssuesForRepo(octokit, owner, repo, labels, statusRegex) {
         const data = yield octokit.paginate(octokit.rest.issues.listForRepo, {
             owner,
             repo,
-            labels: labels.join(','),
+            labels: labels.join(',')
         });
         const adrFromIssues = [];
         const adrFromComments = [];
@@ -97,7 +97,6 @@ function getAdrIssuesForRepo(octokit, owner, repo, labels, statusRegex) {
         };
     });
 }
-exports.getAdrIssuesForRepo = getAdrIssuesForRepo;
 function getAdrComments(octokit, owner, repo, issueNumber, statusRegex) {
     return __awaiter(this, void 0, void 0, function* () {
         const data = yield octokit.paginate(octokit.rest.issues.listComments, {
@@ -131,13 +130,15 @@ function extractTitleFromComment(commentBody) {
         .exec(commentBody)) === null || _a === void 0 ? void 0 : _a.at(1);
     return (_b = sentencesAfterTitle === null || sentencesAfterTitle === void 0 ? void 0 : sentencesAfterTitle.split(/\r?\n/)[0]) !== null && _b !== void 0 ? _b : 'unknown';
 }
-function outputADRsToDashboardIssue(octokit, adrIssues, owner, repo, issueNumber) {
+function outputADRsToDashboardIssue(inputs, adrIssues) {
     return __awaiter(this, void 0, void 0, function* () {
-        const issue = yield octokit.rest.issues.update({
-            owner,
-            repo,
-            issue_number: issueNumber,
-            body: formatADRIssuesToMarkdown(adrIssues)
+        const mdtext = formatADRIssuesToMarkdown(adrIssues);
+        core.debug(`mdtext: ${mdtext}`);
+        const issue = yield inputs.octokit.rest.issues.update({
+            owner: inputs.repositoryOwner,
+            repo: inputs.repositoryName,
+            issue_number: inputs.issueNumber,
+            body: mdtext
         });
         core.info(`Updated ${issue.url}`);
     });
@@ -183,6 +184,89 @@ function extractDateFromISO8601(iso8601) {
 
 /***/ }),
 
+/***/ 5480:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInputs = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+function getInputs() {
+    const authToken = core.getInput('token', { required: true });
+    const octokit = github.getOctokit(authToken);
+    const issueLabels = core.getMultilineInput('issue-labels', { required: true });
+    if (issueLabels.length === 0) {
+        throw new Error('Please specify one or more issue labels');
+    }
+    core.debug(`issue-labels: ${issueLabels}`);
+    const repositories = core
+        .getMultilineInput('repositories', { required: true })
+        .map(repo => {
+        const splitRepository = repo.split('/');
+        if (splitRepository.length !== 2 ||
+            !splitRepository[0] ||
+            !splitRepository[1]) {
+            throw new Error(`Invalid repository '${repo}'. Expected format {owner}/{repo}.`);
+        }
+        return {
+            owner: splitRepository[0],
+            name: splitRepository[1]
+        };
+    });
+    core.debug(`repositories: ${repositories}`);
+    const statusRegex = new RegExp(core.getInput('status-regex', { required: true }));
+    core.debug(`status-regex; ${statusRegex}`);
+    const dashboardIssueNumber = parseInt(core.getInput('dashabord-issue-number', { required: true }));
+    if (isNaN(dashboardIssueNumber)) {
+        throw new Error('failed to cast dashabord-issue-number to number');
+    }
+    const repositoryOwner = github.context.repo.owner;
+    const repositoryName = github.context.repo.repo;
+    const sourceADRInputs = {
+        octokit,
+        repositories,
+        labels: issueLabels,
+        statusRegex
+    };
+    const adrDashboardInputs = {
+        octokit,
+        repositoryOwner,
+        repositoryName,
+        issueNumber: dashboardIssueNumber,
+        adrIssues: {}
+    };
+    return [sourceADRInputs, adrDashboardInputs];
+}
+exports.getInputs = getInputs;
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -222,36 +306,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const github = __importStar(__nccwpck_require__(5438));
 const adr_issues_1 = __nccwpck_require__(112);
-const process_1 = __nccwpck_require__(7282);
+const input_helper_1 = __nccwpck_require__(5480);
 function run() {
-    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         core.info('start');
         try {
-            // Assign given input parameter to variables
-            const githubAuthToken = core.getInput('token');
-            const labels = core.getMultilineInput('issue-labels');
-            const statusRegexStr = core.getInput('status-regex');
-            const statusRegex = statusRegexStr
-                ? new RegExp(statusRegexStr)
-                : /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im;
-            const owner = core.getInput('owner');
-            const repos = core.getMultilineInput('repositories');
-            const dashboardIssueNumber = parseInt(core.getInput('dashabord-issue-number'));
-            if (isNaN(dashboardIssueNumber)) {
-                core.setFailed('failed to cast dashabord-issue-number to number');
-            }
-            core.info(`owner: ${owner}`);
-            core.info(`repositories: ${repos}`);
-            core.info(`issue-labels: ${labels}`);
-            core.info(`status-regex: ${statusRegex}`);
-            const octokit = github.getOctokit(githubAuthToken);
-            const adrIssues = yield (0, adr_issues_1.getAdrIssues)(octokit, owner, repos, labels, statusRegex);
-            const [dashabordOwner, dashabordRepo] = (_b = (_a = process_1.env.GITHUB_REPOSITORY) === null || _a === void 0 ? void 0 : _a.split('/')) !== null && _b !== void 0 ? _b : [owner];
-            yield (0, adr_issues_1.outputADRsToDashboardIssue)(octokit, adrIssues, dashabordOwner, dashabordRepo, dashboardIssueNumber);
-            // const adrDashboardIssue = await ensureAdrDashboardIssue
+            const [sourceADRInputs, adrDashboardInputs] = (0, input_helper_1.getInputs)();
+            const adrIssues = yield (0, adr_issues_1.getAdrIssues)(sourceADRInputs);
+            yield (0, adr_issues_1.outputADRsToDashboardIssue)(adrDashboardInputs, adrIssues);
         }
         catch (error) {
             if (error instanceof Error)
@@ -9963,14 +10026,6 @@ module.exports = require("os");
 
 "use strict";
 module.exports = require("path");
-
-/***/ }),
-
-/***/ 7282:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("process");
 
 /***/ }),
 

@@ -50,13 +50,12 @@ Done
         }
       ])
 
-    const adrIssues = await getAdrIssues(
-      mockOctokit,
-      '44smkn',
-      ['aggregate-adr-issues'],
-      ['ADR', 'SRE'],
-      /status[\s:)\\r\\n]*(proposed|accepted|done)/im
-    )
+    const adrIssues = await getAdrIssues({
+      octokit: mockOctokit,
+      repositories: [{ owner: '44smkn', name: 'aggregate-adr-issues' }],
+      labels: ['ADR', 'SRE'],
+      statusRegex: /status[\s:)\\r\\n]*(proposed|accepted|done)/im
+    })
 
     console.log(adrIssues.adrFromIssues)
     console.log(adrIssues.adrFromComments)
