@@ -26,8 +26,7 @@ jobs:
           issue-labels: |
             ADR
             SRE
-          owner: 44smkn
           repositories: |
-            aggregate-adr-issues
+            44smkn/aggregate-adr-issues
           dashabord-issue-number: 10
           token: ${{ secrets.GITHUB_TOKEN }}
