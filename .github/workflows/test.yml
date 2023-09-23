@@ -29,4 +29,3 @@ jobs:
           repositories: |
             44smkn/aggregate-adr-issues
           dashabord-issue-number: 10
-          token: ${{ secrets.GITHUB_TOKEN }}
