@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.json", // Inherit route settings
+    "compilerOptions": {
+        "noImplicitAny": false, // Allow any
+        "rootDir": "__tests__",
+    },
+    "include": [
+        "./**/*.test.ts",
+    ] // Handle only files in this directory as targets
+}

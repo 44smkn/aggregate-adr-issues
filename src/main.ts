@@ -1,19 +1,18 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import { getAdrIssues, outputADRsToDashboardIssue } from './adr-issues'
+import { getInputs } from './input-helper'
 
 async function run(): Promise<void> {
+  core.info('start')
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    const [sourceADRInputs, adrDashboardInputs] = getInputs()
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
+    const adrIssues = await getAdrIssues(sourceADRInputs)
+    await outputADRsToDashboardIssue(adrDashboardInputs, adrIssues)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
+  core.info('end')
 }
 
 run()

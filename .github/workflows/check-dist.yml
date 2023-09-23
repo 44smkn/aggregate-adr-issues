@@ -10,10 +10,10 @@ on:
     branches:
       - main
     paths-ignore:
-      - '**.md'
+      - "**.md"
   pull_request:
     paths-ignore:
-      - '**.md'
+      - "**.md"
   workflow_dispatch:
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
         with:
           name: dist
           path: dist/
-          
+
   npm-all:
     runs-on: ubuntu-latest
     steps:
@@ -65,15 +65,17 @@ jobs:
         with:
           # update the pull request branch
           ref: ${{ github.head_ref }}
-          token:  ${{ steps.octoken.outputs.token }}
+          token: ${{ steps.octoken.outputs.token }}
 
       - name: Set Node.js 16.x
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          
+
       - name: Install dependencies
         run: npm ci
-      
+
       - run: npm run all
       - uses: int128/update-generated-files-action@v2
+        with:
+          token: ${{ steps.octoken.outputs.token }}
