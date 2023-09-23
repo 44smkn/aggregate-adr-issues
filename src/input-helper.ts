@@ -33,10 +33,9 @@ export function getInputs(): [SourceADRInputs, ADRDashboardInputs] {
     })
   core.debug(`repositories: ${repositories}`)
 
-  const statusRegex = new RegExp(
-    core.getInput('status-regex', { required: true })
-  )
-  core.debug(`status-regex; ${statusRegex}`)
+  const statusRegexStr = core.getInput('status-regex', { required: true })
+  const statusRegex = new RegExp(statusRegexStr, 'im')
+  core.debug(`status-regex: ${statusRegex}`)
 
   const dashboardIssueNumber = parseInt(
     core.getInput('dashabord-issue-number', { required: true })

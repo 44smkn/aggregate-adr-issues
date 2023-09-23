@@ -17,7 +17,8 @@ inputs:
       Regular expression to find the status of an ADR.
       The first group captured is adopted.
       It is used in both the description and comments of the issue.
-    default: /status[\s:)\\r\\n]*(proposed|accepted|done|rejected)/im
+      Need to use escape charactor befor special charactors.
+    default: status[\s:)\\r\\n]*(proposed|accepted|done|rejected)
   token:
     description: Personal access token (PAT) used to get/update issue in the repository
     default: ${{ github.token }}
