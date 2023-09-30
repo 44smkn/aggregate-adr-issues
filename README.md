@@ -1,6 +1,6 @@
 # aggregate-adr-issues
 
-<a href="https://github.com/44smkn/aggregate-adr-issues?query=workflow%3Atest"><img alt="test status" src="https://github.com/44smkn/aggregate-adr-issues/workflows/test/badge.svg"></a>
+![example workflow](https://github.com/44smkn/aggregate-adr-issues/actions/workflows/test.yml/badge.svg)
 
 This action provides the following functionality for GitHub Actions users:
 
